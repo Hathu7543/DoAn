@@ -1,0 +1,14 @@
+main.c:125:13:MotorController_Reset	24	static
+main.c:143:14:SpeedAverage_Update	24	static
+main.c:157:14:Clamp	24	static
+main.c:164:14:Proportional_Update	48	static
+main.c:176:13:SpeedReport_Update	32	static
+main.c:191:13:Motor_SetDuty	56	static
+main.c:225:13:Motor_Update	104	static
+main.c:298:5:main	40	static
+main.c:389:6:SystemClock_Config	72	static
+main.c:428:13:MX_TIM2_Init	56	static
+main.c:477:13:MX_TIM3_Init	56	static
+main.c:526:13:MX_TIM4_Init	64	static
+main.c:589:13:MX_GPIO_Init	40	static
+main.c:626:6:Error_Handler	4	static,ignoring_inline_asm
