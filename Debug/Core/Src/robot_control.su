@@ -1,0 +1,11 @@
+robot_math.h:14:21:RobotClamp	24	static
+robot_math.h:19:21:RobotSlew	24	static
+robot_math.h:24:20:RobotInverse	48	static
+robot_math.h:38:20:RobotForward	32	static
+robot_control.c:47:12:WriteRegister	32	static
+robot_control.c:53:16:Signed16	24	static
+robot_control.c:59:13:ImuFault	4	static
+robot_control.c:67:6:Robot_Init	40	static
+robot_control.c:95:13:ResetCalibration	4	static
+robot_control.c:101:13:ReadImu	136	static
+robot_control.c:172:6:Robot_Update	72	static

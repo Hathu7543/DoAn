@@ -23,6 +23,8 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <math.h>
+#include "robot_control.h"
+#include "telemetry_uart.h"
 #define SPEED_AVERAGE_LENGTH 10U
 /* USER CODE END Includes */
 
@@ -38,6 +40,7 @@ typedef struct
     int8_t encoder_direction;
     int8_t drive_direction;
     uint16_t previous_count;
+    int64_t total_counts;
     float speed_buffer[SPEED_AVERAGE_LENGTH];
     float speed_sum;
     uint16_t speed_index;
@@ -78,13 +81,15 @@ typedef struct
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+I2C_HandleTypeDef hi2c2;
+
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
 TIM_HandleTypeDef htim4;
 
 /* USER CODE BEGIN PV */
-volatile float target_left_rpm = 30.0f;
-volatile float target_right_rpm = 30.0f;
+volatile float target_left_rpm = 0.0f;
+volatile float target_right_rpm = 0.0f;
 volatile float measured_left_rpm = 0.0f;
 volatile float measured_right_rpm = 0.0f;
 volatile float filtered_left_rpm = 0.0f;
@@ -115,6 +120,7 @@ static void MX_GPIO_Init(void);
 static void MX_TIM3_Init(void);
 static void MX_TIM4_Init(void);
 static void MX_TIM2_Init(void);
+static void MX_I2C2_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -138,6 +144,7 @@ static void MotorController_Reset(MotorController *motor)
     motor->target_direction = 0;
     __HAL_TIM_SET_COUNTER(motor->encoder_timer, 0);
     motor->previous_count = 0;
+    motor->total_counts = 0;
 }
 
 static float SpeedAverage_Update(MotorController *motor, float input)
@@ -200,10 +207,15 @@ static void Motor_SetDuty(MotorController *motor,
     int8_t desired_direction = (physical_duty > 0.0f) ? 1 :
                                ((physical_duty < 0.0f) ? -1 : 0);
 
-    // Remove PWM before changing H-bridge direction.
+    // Hold IN1/IN2 low for a complete control cycle before reversing.
     if (desired_direction != 0 && motor->applied_direction != 0 &&
         desired_direction != motor->applied_direction) {
         __HAL_TIM_SET_COMPARE(&htim4, motor->pwm_channel, 0);
+        HAL_GPIO_WritePin(motor->direction_port,
+                          motor->in1_pin | motor->in2_pin, GPIO_PIN_RESET);
+        motor->applied_direction = 0;
+        *pwm_value = 0.0f;
+        return;
     }
 
     if (compare == 0U) {
@@ -223,6 +235,7 @@ static void Motor_SetDuty(MotorController *motor,
 }
 
 static void Motor_Update(MotorController *motor,
+                         uint16_t count_now,
                          uint32_t elapsed_ms,
                          float setpoint,
                          volatile float *measured_rpm,
@@ -233,13 +246,13 @@ static void Motor_Update(MotorController *motor,
                          volatile float *rpm_average)
 {
     float dt = (float)elapsed_ms * 0.001f;
-    uint16_t count_now = (uint16_t)__HAL_TIM_GET_COUNTER(motor->encoder_timer);
     int32_t delta_count = (int32_t)count_now - (int32_t)motor->previous_count;
     if (delta_count > 32767) delta_count -= 65536;
     if (delta_count < -32768) delta_count += 65536;
     motor->previous_count = count_now;
 
     int32_t directed_counts = motor->encoder_direction * delta_count;
+    motor->total_counts += directed_counts;
     SpeedReport_Update(motor, directed_counts, elapsed_ms, rpm_average);
     float speed = (float)directed_counts * 60.0f /
                   (ENCODER_COUNTS_PER_REV * dt);
@@ -322,7 +335,9 @@ int main(void)
   MX_TIM3_Init();
   MX_TIM4_Init();
   MX_TIM2_Init();
+  MX_I2C2_Init();
   /* USER CODE BEGIN 2 */
+  Telemetry_Init();
 
   left_motor.encoder_timer = &htim3;
   left_motor.pwm_channel = TIM_CHANNEL_1;
@@ -345,6 +360,7 @@ int main(void)
   __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_2, 0);
   Motor_SetDuty(&left_motor, 0.0f, &pwm_left);
   Motor_SetDuty(&right_motor, 0.0f, &pwm_right);
+  Robot_Init(&hi2c2);
 
   if (HAL_TIM_Encoder_Start(&htim3, TIM_CHANNEL_ALL) != HAL_OK ||
       HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_ALL) != HAL_OK) {
@@ -365,18 +381,33 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+    Telemetry_Service();
     uint32_t now = HAL_GetTick();
     uint32_t elapsed_ms = now - last_control_tick;
     if (elapsed_ms >= CONTROL_PERIOD_MS) {
         last_control_tick = now;
-        Motor_Update(&left_motor, elapsed_ms, target_left_rpm,
+        // Capture both encoder counters before I2C access for a common sample time.
+        uint16_t left_count = (uint16_t)__HAL_TIM_GET_COUNTER(&htim3);
+        uint16_t right_count = (uint16_t)__HAL_TIM_GET_COUNTER(&htim2);
+        int encoder_moving =
+            left_count != left_motor.previous_count ||
+            right_count != right_motor.previous_count;
+        float left_target, right_target;
+        Robot_Update(elapsed_ms, filtered_left_rpm, filtered_right_rpm,
+                     encoder_moving, &left_target, &right_target);
+        target_left_rpm = left_target;
+        target_right_rpm = right_target;
+        Motor_Update(&left_motor, left_count, elapsed_ms, target_left_rpm,
                      &measured_left_rpm, &filtered_left_rpm,
                      &error_left_rpm, &integral_left_duty,
                      &pwm_left, &rpm_average_left_1s);
-        Motor_Update(&right_motor, elapsed_ms, target_right_rpm,
+        Motor_Update(&right_motor, right_count, elapsed_ms, target_right_rpm,
                      &measured_right_rpm, &filtered_right_rpm,
                      &error_right_rpm, &integral_right_duty,
                      &pwm_right, &rpm_average_right_1s);
+        Telemetry_Send(now, left_motor.total_counts, right_motor.total_counts,
+                       gyro_w_radps, accel_x_mps2, accel_y_mps2, accel_z_mps2,
+                       imu_state, robot_fault, robot_enable);
     }
   }
   /* USER CODE END 3 */
@@ -418,6 +449,40 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
+}
+
+/**
+  * @brief I2C2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_I2C2_Init(void)
+{
+
+  /* USER CODE BEGIN I2C2_Init 0 */
+
+  /* USER CODE END I2C2_Init 0 */
+
+  /* USER CODE BEGIN I2C2_Init 1 */
+
+  /* USER CODE END I2C2_Init 1 */
+  hi2c2.Instance = I2C2;
+  hi2c2.Init.ClockSpeed = 100000;
+  hi2c2.Init.DutyCycle = I2C_DUTYCYCLE_2;
+  hi2c2.Init.OwnAddress1 = 0;
+  hi2c2.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
+  hi2c2.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
+  hi2c2.Init.OwnAddress2 = 0;
+  hi2c2.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
+  hi2c2.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
+  if (HAL_I2C_Init(&hi2c2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN I2C2_Init 2 */
+
+  /* USER CODE END I2C2_Init 2 */
+
 }
 
 /**
