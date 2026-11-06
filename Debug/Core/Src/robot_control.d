@@ -25,7 +25,8 @@ Core/Src/robot_control.o: ../Core/Src/robot_control.c \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_pwr.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h \
- ../Core/Inc/robot_math.h
+ ../Core/Inc/imu_mpu6050.h ../Core/Inc/robot_math.h \
+ ../Core/Inc/imu_mpu6050.h
 
 ../Core/Inc/robot_control.h:
 
@@ -81,4 +82,8 @@ Core/Src/robot_control.o: ../Core/Src/robot_control.c \
 
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h:
 
+../Core/Inc/imu_mpu6050.h:
+
 ../Core/Inc/robot_math.h:
+
+../Core/Inc/imu_mpu6050.h:

@@ -1,0 +1,10 @@
+telemetry_uart.c:20:6:Telemetry_RxIRQHandler	24	static
+telemetry_uart.c:38:17:Telemetry_Crc	24	static
+telemetry_uart.c:48:13:Telemetry_Put	32	static
+telemetry_uart.c:55:13:Command_Stop	4	static
+telemetry_uart.c:61:13:Command_Byte	32	static
+telemetry_uart.c:103:13:Command_Service	32	static,ignoring_inline_asm
+telemetry_uart.c:129:13:Telemetry_Float	32	static
+telemetry_uart.c:135:6:Telemetry_Init	32	static
+telemetry_uart.c:157:6:Telemetry_Service	8	static
+telemetry_uart.c:163:6:Telemetry_Send	40	static

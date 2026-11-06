@@ -1,0 +1,6 @@
+motor_control.c:12:6:MotorController_Reset	16	static
+motor_control.c:26:14:Clamp	24	static
+motor_control.c:33:14:Proportional_Update	48	static
+motor_control.c:45:13:SpeedReport_Update	32	static
+motor_control.c:60:6:Motor_SetDuty	56	static
+motor_control.c:99:6:Motor_Update	96	static

@@ -1,0 +1,2 @@
+robot_app.c:24:19:RobotApp_Init	24	static
+robot_app.c:69:6:RobotApp_Process	104	static

@@ -1,16 +1,13 @@
 #ifndef ROBOT_CONTROL_H
 #define ROBOT_CONTROL_H
 #include "main.h"
+#include "imu_mpu6050.h"
 
 // Watch/write these in CubeIDE Live Expressions or MCUViewer.
 extern volatile uint32_t robot_enable;
 extern volatile float command_v_mps, command_w_radps;
 extern volatile float reference_v_mps, reference_w_radps;
-extern volatile float measured_v_mps, encoder_w_radps, gyro_w_radps;
-extern volatile float accel_x_mps2, accel_y_mps2, accel_z_mps2;
-extern volatile float accel_uncal_x_mps2, accel_uncal_y_mps2, accel_uncal_z_mps2;
-extern volatile float gyro_bias_z_dps, yaw_relative_rad;
-extern volatile uint32_t imu_state, imu_calibration_samples, imu_error_count;
+extern volatile float measured_v_mps, encoder_w_radps;
 extern volatile uint32_t robot_fault;
 extern volatile uint32_t yaw_feedback_enable;
 extern volatile float yaw_kp, yaw_correction_radps;

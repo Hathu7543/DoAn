@@ -1,0 +1,2 @@
+speed_filter.c:3:6:SpeedFilter_Reset	24	static
+speed_filter.c:13:7:SpeedFilter_Update	24	static

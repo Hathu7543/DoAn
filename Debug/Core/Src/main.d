@@ -24,8 +24,7 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_pwr.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h \
- ../Core/Inc/robot_control.h ../Core/Inc/main.h \
- ../Core/Inc/telemetry_uart.h ../Core/Inc/robot_control.h
+ ../Core/Inc/robot_app.h ../Core/Inc/main.h
 
 ../Core/Inc/main.h:
 
@@ -79,10 +78,6 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
 
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h:
 
-../Core/Inc/robot_control.h:
+../Core/Inc/robot_app.h:
 
 ../Core/Inc/main.h:
-
-../Core/Inc/telemetry_uart.h:
-
-../Core/Inc/robot_control.h:

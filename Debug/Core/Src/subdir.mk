@@ -5,31 +5,46 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
+../Core/Src/imu_mpu6050.c \
 ../Core/Src/main.c \
+../Core/Src/motor_control.c \
+../Core/Src/robot_app.c \
 ../Core/Src/robot_control.c \
+../Core/Src/speed_filter.c \
 ../Core/Src/stm32f1xx_hal_msp.c \
 ../Core/Src/stm32f1xx_it.c \
 ../Core/Src/syscalls.c \
 ../Core/Src/sysmem.c \
-../Core/Src/system_stm32f1xx.c 
+../Core/Src/system_stm32f1xx.c \
+../Core/Src/telemetry_uart.c 
 
 OBJS += \
+./Core/Src/imu_mpu6050.o \
 ./Core/Src/main.o \
+./Core/Src/motor_control.o \
+./Core/Src/robot_app.o \
 ./Core/Src/robot_control.o \
+./Core/Src/speed_filter.o \
 ./Core/Src/stm32f1xx_hal_msp.o \
 ./Core/Src/stm32f1xx_it.o \
 ./Core/Src/syscalls.o \
 ./Core/Src/sysmem.o \
-./Core/Src/system_stm32f1xx.o 
+./Core/Src/system_stm32f1xx.o \
+./Core/Src/telemetry_uart.o 
 
 C_DEPS += \
+./Core/Src/imu_mpu6050.d \
 ./Core/Src/main.d \
+./Core/Src/motor_control.d \
+./Core/Src/robot_app.d \
 ./Core/Src/robot_control.d \
+./Core/Src/speed_filter.d \
 ./Core/Src/stm32f1xx_hal_msp.d \
 ./Core/Src/stm32f1xx_it.d \
 ./Core/Src/syscalls.d \
 ./Core/Src/sysmem.d \
-./Core/Src/system_stm32f1xx.d 
+./Core/Src/system_stm32f1xx.d \
+./Core/Src/telemetry_uart.d 
 
 
 # Each subdirectory must supply rules for building sources it contributes
